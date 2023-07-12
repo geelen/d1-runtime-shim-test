@@ -8,8 +8,8 @@ devDependencies:
     specifier: ^5.0.4
     version: 5.0.4
   wrangler:
-    specifier: ^3.0.0
-    version: 3.0.0
+    specifier: link:/Users/glen/src/work/wrangler2/packages/wrangler
+    version: 3.2.0
 
 packages:
 
@@ -918,8 +918,8 @@ packages:
       '@cloudflare/workerd-windows-64': 1.20230710.0
     dev: true
 
-  /wrangler@3.0.0:
-    resolution: {integrity: sha512-azppXJjEQeaVg3wxFZJOGDGtpR8e9clHr2aHuanGHOk9vX3gvesCv97BF/n8qh1Y1d7vDKOBdfQW3UOYZNFGNw==}
+  /wrangler@3.2.0:
+    resolution: {integrity: sha512-Fne5c91uolV4+E0B60F/meWbD/sr/oSPBfr6x1gapu6I7Ipu5uUt29K/fuGRgXRQcVVKnd5k3fS++ruuLODoxA==}
     engines: {node: '>=16.13.0'}
     hasBin: true
     dependencies:
