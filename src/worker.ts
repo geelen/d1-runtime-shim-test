@@ -1,5 +1,5 @@
 import { ExportedHandler } from '@cloudflare/workers-types/2022-11-30/index'
-import { z, expect } from 'z-expect'
+import { expect, z } from 'z-expect'
 
 export interface Env {
 	DB: D1Database
@@ -25,10 +25,10 @@ export default {
 			...(await Promise.all(
 				Object.entries({
 					test_d1_select_1,
-					// 		test_d1_select_all,
-					// 		test_d1_select_one,
-					// 		test_d1_batch,
-					// 		test_d1_exec,
+					test_d1_select_all,
+					test_d1_select_one,
+					test_d1_batch,
+					test_d1_exec,
 				}).map(safeExec(env)),
 			)),
 		]
@@ -44,16 +44,6 @@ const MOCK_USER_ROWS = {
 }
 
 async function init(DB: D1Database) {
-	expect({
-		results: [{ 1: 1 }],
-		meta: { duration: 0.001, served_by: 'd1-mock' },
-		success: true,
-	}).toMatchObject({
-		results: [{ 1: 1 }],
-		meta: { duration: z.number().gt(0), served_by: 'd1-mock' },
-		success: true,
-	})
-
 	await DB.batch([
 		DB.prepare(`DROP TABLE IF EXISTS users;`),
 		DB.prepare(`CREATE TABLE users ( user_id INTEGER PRIMARY KEY, name TEXT, home TEXT, features TEXT);`),
@@ -78,16 +68,16 @@ async function test_d1_select_all(DB: D1Database) {
 	const user_2 = MOCK_USER_ROWS[2]
 
 	const stmt = DB.prepare(`select *from users;`)
-	assert.deepEqual(await stmt.all(), {
+	expect(await stmt.all()).toMatchObject({
 		results: [user_1, user_2],
-		meta: { duration: 0.001, served_by: 'd1-mock' },
+		meta: { duration: z.number().gte(0), served_by: 'v3-prod' },
 		success: true,
 	})
 
 	const [raw, first, firstColumn] = await Promise.all([stmt.raw(), stmt.first(), stmt.first('features')])
-	assert.deepEqual(raw, [Object.values(user_1), Object.values(user_2)])
-	assert.deepEqual(first, user_1)
-	assert.deepEqual(firstColumn, user_1.features)
+	expect(raw).toMatchObject([Object.values(user_1), Object.values(user_2)])
+	expect(first).toMatchObject(user_1)
+	expect(firstColumn).toEqual(user_1.features)
 }
 
 async function test_d1_select_one(DB: D1Database) {
@@ -97,29 +87,29 @@ async function test_d1_select_one(DB: D1Database) {
 	const withParam = DB.prepare(`select *from users where user_id = ?;`)
 	{
 		const stmt = withParam.bind(1)
-		assert.deepEqual(await stmt.all(), {
+		expect(await stmt.all()).toMatchObject({
 			results: [user_1],
-			meta: { duration: 0.001, served_by: 'd1-mock' },
+			meta: { duration: z.number().gte(0), served_by: 'v3-prod' },
 			success: true,
 		})
 
 		const [raw, first, firstColumn] = await Promise.all([stmt.raw(), stmt.first(), stmt.first('home')])
-		assert.deepEqual(raw, [Object.values(user_1)])
-		assert.deepEqual(first, user_1)
-		assert.deepEqual(firstColumn, user_1.home)
+		expect(raw).toMatchObject([Object.values(user_1)])
+		expect(first).toMatchObject(user_1)
+		expect(firstColumn).toEqual(user_1.home)
 	}
 	{
 		const stmt = withParam.bind(2)
-		assert.deepEqual(await stmt.all(), {
+		expect(await stmt.all()).toMatchObject({
 			results: [user_2],
-			meta: { duration: 0.001, served_by: 'd1-mock' },
+			meta: { duration: z.number().gte(0), served_by: 'v3-prod' },
 			success: true,
 		})
 
 		const [raw, first, firstColumn] = await Promise.all([stmt.raw(), stmt.first(), stmt.first('name')])
-		assert.deepEqual(raw, [Object.values(user_2)])
-		assert.deepEqual(first, user_2)
-		assert.deepEqual(firstColumn, user_2.name)
+		expect(raw).toMatchObject([Object.values(user_2)])
+		expect(first).toMatchObject(user_2)
+		expect(firstColumn).toEqual(user_2.name)
 	}
 }
 
@@ -129,15 +119,15 @@ async function test_d1_batch(DB: D1Database) {
 
 	const withParam = DB.prepare(`select *from users where user_id = ?;`)
 	const response = await DB.batch([withParam.bind(1), withParam.bind(2)])
-	assert.deepEqual(response, [
+	expect(response).toMatchObject([
 		{
 			results: [user_1],
-			meta: { duration: 0.001, served_by: 'd1-mock' },
+			meta: { duration: z.number().gte(0), served_by: 'v3-prod' },
 			success: true,
 		},
 		{
 			results: [user_2],
-			meta: { duration: 0.001, served_by: 'd1-mock' },
+			meta: { duration: z.number().gte(0), served_by: 'v3-prod' },
 			success: true,
 		},
 	])
@@ -146,8 +136,7 @@ async function test_d1_batch(DB: D1Database) {
 async function test_d1_exec(DB: D1Database) {
 	const response = await DB.exec(`
 			select 1;
-			select *
-			from users;
+			select * from users;
 		`)
-	assert.deepEqual(response, { count: 2, duration: 0.002 })
+	expect(response).toMatchObject({ count: 2, duration: z.number().gte(0) })
 }
