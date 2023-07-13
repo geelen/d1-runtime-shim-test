@@ -1,6 +1,7 @@
 name = "d1-runtime-shim-test"
 main = "src/worker.ts"
 compatibility_date = "2023-07-10"
+compatibility_flags = ["nodejs_compat"]
 
 [[d1_databases]]
 binding = "DB" # i.e. available in your Worker on env.DB
